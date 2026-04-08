@@ -28,12 +28,18 @@ function toggleForm() {
   const submitBtn = document.getElementById("submit-btn");
   const toggleText = document.getElementById("toggle-text");
   const nameGroup = document.getElementById("name-group");
+  const toggleLink = document.getElementById("toggle-link");
 
-  if (!formTitle || !submitBtn || !toggleText) return;
+  if (!formTitle || !submitBtn || !toggleText|| !nameGroup) return;
 
   formTitle.innerText = isLogin ? "Login" : "Register";
   submitBtn.innerText = isLogin ? "Login" : "Register";
-  toggleText.innerText = isLogin ? "Don't have an account?" : "Already have an account?";
+  
+  toggleText.innerText = isLogin 
+  ? "Don't have an account?" 
+  : "Already have an account?";
+
+  toggleLink.innerText = isLogin ? "Register" : "Login";
 
   //show name for registration
   nameGroup.style.display = isLogin ? "none" : "block";
