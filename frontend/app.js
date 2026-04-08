@@ -14,11 +14,87 @@ if (path.endsWith("tasks.html") && !token) {
 }
 
 // If logged in → block login page
-if (path.endsWith("index.html") && token) {
+if ((path.endsWith("index.html") || path.endsWith("register.html")) && token) {
   window.location.replace("tasks.html");
 }
+
+// ======== AUTH FORM TOGGLE ========
+let isLogin = true; // true = login, false = register
+
+function toggleForm() {
+  isLogin = !isLogin;
+
+  const formTitle = document.getElementById("form-title");
+  const submitBtn = document.getElementById("submit-btn");
+  const toggleText = document.getElementById("toggle-text");
+  const nameGroup = document.getElementById("name-group");
+
+  if (!formTitle || !submitBtn || !toggleText) return;
+
+  formTitle.innerText = isLogin ? "Login" : "Register";
+  submitBtn.innerText = isLogin ? "Login" : "Register";
+  toggleText.innerText = isLogin ? "Don't have an account?" : "Already have an account?";
+
+  //show name for registration
+  nameGroup.style.display = isLogin ? "none" : "block";
+}
+
+// ======== HANDLE LOGIN OR REGISTER ========
+async function handleSubmit() {
+  const email = document.getElementById("email")?.value;
+  const password = document.getElementById("password")?.value;
+
+  if (!email || !password) {
+    alert("Email and password are required");
+    return;
+  }
+
+  const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
+
+  // Send name only if registering
+  const body = isLogin
+    ? { email, password }
+    : { name: document.getElementById("name")?.value, email, password };
+
+  if (!isLogin && !body.name) {
+    alert("Name is required for registration");
+    return;
+  }
+
+  try {
+    const res = await fetch(`http://localhost:5000${endpoint}`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify(body),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Something went wrong");
+      return;
+    }
+
+    // Login flow
+    if (isLogin && data.token) {
+      token = data.token;
+      localStorage.setItem("token", token);
+      window.location.href = "tasks.html";
+    } 
+    // Register flow
+    else if (!isLogin) {
+      alert("User registered successfully! You can now log in.");
+      toggleForm(); // Switch to login after successful registration
+    }
+
+  } catch (err) {
+    console.error(err);
+    alert("Error connecting to server");
+  }
+}
+
 // LOGIN FUNCTION
-async function login() {
+/*async function login() {
   try {
     const email = document.getElementById("email").value;
     const password = document.getElementById("password").value;
@@ -48,7 +124,7 @@ async function login() {
     console.error(error);
     alert("Error logging in");
   }
-}
+}*/
 
 // GET TASKS
 async function getTasks() {

@@ -1,53 +1,74 @@
-# 🧠 Task Manager API
+# 📝 Tasker – Full Stack Task Management App
 
-A RESTful API for managing tasks with user authentication, built using Node.js, Express, and MongoDB. This project demonstrates full backend development with secure authentication, protected routes, and complete CRUD functionality.
+A full-stack task management application built with **Node.js, Express, MongoDB, and vanilla JavaScript**.
+Users can register, log in, and manage their personal tasks with full CRUD functionality.
 
 ---
 
 ## 🚀 Features
 
-* 🔐 User Authentication (JWT)
-* 🛡️ Protected Routes (only authenticated users can access tasks)
-* 📋 Task Management (CRUD operations)
-* 🔎 Filter tasks by status
-* 🔍 Search tasks by title
-* 🧱 MVC Architecture (Models, Controllers, Routes)
-* 🌐 MongoDB database integration
+* 🔐 User Authentication (JWT-based)
+* 🧑‍💻 Register & Login system
+* 🔒 Protected routes with middleware
+* ✅ Create, Read, Update, Delete (CRUD) tasks
+* 📌 Task status management:
+
+  * `pending`
+  * `in-progress`
+  * `awaiting`
+  * `done`
+* 🎨 Simple frontend with vanilla JavaScript
+* 🌐 RESTful API structure
+* 🧱 MVC architecture (Model-View-Controller)
 
 ---
 
-## 🛠️ Tech Stack
+## 🏗️ Tech Stack
 
-* **Backend:** Node.js, Express.js
-* **Database:** MongoDB (Mongoose)
-* **Authentication:** JSON Web Tokens (JWT)
-* **Testing:** Postman
-* **Version Control:** Git & GitHub
+### Backend
+
+* Node.js
+* Express.js
+* MongoDB Atlas
+* Mongoose
+* JSON Web Tokens (JWT)
+* dotenv
+
+### Frontend
+
+* HTML
+* CSS
+* JavaScript (Vanilla)
 
 ---
 
-## 📂 Project Structure
+## 📁 Project Structure
 
 ```
-server/
+tasker/
 │
-├── models/
-│   ├── User.js
-│   └── Task.js
+├── server/
+│   ├── controllers/
+│   │   └── taskController.js
+│   ├── middleware/
+│   │   └── authMiddleware.js
+│   ├── models/
+│   │   ├── Task.js
+│   │   └── User.js
+│   ├── routes/
+│   │   ├── auth.js
+│   │   └── taskRoutes.js
+│   └── server.js
 │
-├── controllers/
-│   ├── authController.js
-│   └── taskController.js
-│
-├── routes/
-│   ├── auth.js
-│   └── taskRoutes.js
-│
-├── middleware/
-│   └── authMiddleware.js
+├── frontend/
+│   ├── index.html
+│   ├── tasks.html
+│   ├── app.js
+│   └── style.css
 │
 ├── .env
-├── server.js
+├── package.json
+└── README.md
 ```
 
 ---
@@ -56,8 +77,8 @@ server/
 
 ### 1. Clone the repository
 
-```bash
-git clone https://github.com/YOUR_USERNAME/tasker.git
+```
+git clone https://github.com/your-username/tasker.git
 cd tasker
 ```
 
@@ -65,7 +86,7 @@ cd tasker
 
 ### 2. Install dependencies
 
-```bash
+```
 npm install
 ```
 
@@ -84,11 +105,11 @@ JWT_SECRET=your_secret_key
 
 ### 4. Run the server
 
-```bash
+```
 npm run dev
 ```
 
-Server will start on:
+Server will run on:
 
 ```
 http://localhost:5000
@@ -96,142 +117,75 @@ http://localhost:5000
 
 ---
 
-## 🔐 Authentication Endpoints
+### 5. Open the frontend
 
-### Register User
+Open manually in your browser:
 
-```http
-POST /api/auth/register
 ```
-
-```json
-{
-  "name": "John Doe",
-  "email": "john@test.com",
-  "password": "password123"
-}
+frontend/index.html
 ```
 
 ---
 
-### Login User
+## 🔐 Authentication Flow
 
-```http
+1. User logs in via `index.html`
+2. Backend returns a JWT token
+3. Token is stored in `localStorage`
+4. Protected routes require:
+
+   ```
+   Authorization: Bearer <token>
+   ```
+5. Tasks page (`tasks.html`) is only accessible if authenticated
+
+---
+
+## 📡 API Endpoints
+
+### Auth Routes
+
+```
+POST /api/auth/register
 POST /api/auth/login
 ```
 
-```json
-{
-  "email": "john@test.com",
-  "password": "password123"
-}
+### Task Routes (Protected)
+
 ```
-
-Returns a JWT token:
-
-```json
-{
-  "token": "your_jwt_token"
-}
+GET    /api/tasks        → Get all tasks
+POST   /api/tasks        → Create task
+PUT    /api/tasks/:id    → Update task
+DELETE /api/tasks/:id    → Delete task
 ```
 
 ---
 
-## 📋 Task Endpoints
+## 🧪 Testing
 
-> All routes below require authentication
-> Add header: `Authorization: Bearer <token>`
+You can test the API using:
 
----
-
-### Create Task
-
-```http
-POST /api/tasks
-```
-
-```json
-{
-  "title": "Finish backend project",
-  "status": "pending"
-}
-```
+* Postman
+* Thunder Client (VS Code)
 
 ---
 
-### Get All Tasks
+## ⚠️ Known Issues / Notes
 
-```http
-GET /api/tasks
-```
-
----
-
-### Filter Tasks by Status
-
-```http
-GET /api/tasks?status=pending
-```
-
----
-
-### Search Tasks
-
-```http
-GET /api/tasks?search=backend
-```
-
----
-
-### Update Task
-
-```http
-PUT /api/tasks/:id
-```
-
-```json
-{
-  "status": "in-progress"
-}
-```
-
----
-
-### Delete Task
-
-```http
-DELETE /api/tasks/:id
-```
-
----
-
-## 📌 Task Status Options
-
-* `pending`
-* `in-progress`
-* `awaiting`
-* `done`
-
----
-
-## 🧠 What This Project Demonstrates
-
-* Building RESTful APIs with Express
-* Implementing authentication with JWT
-* Securing routes with middleware
-* Structuring a backend using MVC
-* Performing CRUD operations with MongoDB
-* Handling real-world debugging and errors
+* Frontend is served locally (no deployment yet)
+* CORS must be enabled on backend for frontend requests
+* Tokens are stored in localStorage (for development purposes)
 
 ---
 
 ## 🚀 Future Improvements
 
-* Frontend UI (Trello-style board)
-* Task priorities and deadlines
-* Task dependencies
-* User profile management
-* Deployment (Render / Vercel / Railway)
+* 🌐 Deploy backend (Render / Railway)
+* ⚛️ Migrate frontend to React
+* 📱 Improve UI/UX design
+* 🗂️ Add task filtering & search
+* ⏰ Add due dates and priorities
+* 👥 Multi-user collaboration
 
 ---
 
@@ -241,6 +195,6 @@ DELETE /api/tasks/:id
 
 ---
 
-## ⭐️ Show your support
+## 📄 License
 
-If you like this project, feel free to star the repository ⭐️
+This project is open-source and available under the MIT License.
