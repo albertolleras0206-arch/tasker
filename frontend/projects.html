@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Projects</title>
+  <link rel="stylesheet" href="style.css">
+</head>
+
+<body>
+
+  <div class="container">
+
+    <header class="header">
+      <h1>Projects</h1>
+      <button onclick="logout()">Logout</button>
+    </header>
+
+    <!-- CREATE PROJECT -->
+    <div class="project-create">
+      <input id="projectName" placeholder="New project..." />
+      <button onclick="createProject()">Create</button>
+    </div>
+
+    <!-- PROJECT LIST -->
+    <ul id="projectList" class="task-list"></ul>
+
+  </div>
+
+  <script src="app.js"></script>
+</body>
+
+</html>

@@ -1,6 +1,5 @@
 const jwt = require("jsonwebtoken");
 
-
 const authMiddleware = (req, res, next) => {
   try {
     // Get token from header
@@ -17,6 +16,7 @@ const authMiddleware = (req, res, next) => {
     req.user = decoded;
 
     next();
+
   } catch (error) {
     res.status(401).json({ message: "Token is not valid" });
   }

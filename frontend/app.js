@@ -1,4 +1,5 @@
 let token = localStorage.getItem("token");
+let currentProjectId = localStorage.getItem("projectId");
 
 const path = window.location.pathname;
 
@@ -9,13 +10,13 @@ if (token === "undefined" || token === "null") {
 }
 
 // If NOT logged in → block tasks page
-if (path.endsWith("tasks.html") && !token) {
+if (path.endsWith("tasks.html") || path.endsWith("projects.html") && !token) {
   window.location.replace("index.html");
 }
 
 // If logged in → block login page
-if ((path.endsWith("index.html") || path.endsWith("register.html")) && token) {
-  window.location.replace("tasks.html");
+if ((path.endsWith("index.html") || path.endsWith("register.html") && token) && token) {
+  window.location.replace("projects.html");
 }
 
 // ======== AUTH FORM TOGGLE ========
@@ -30,14 +31,14 @@ function toggleForm() {
   const nameGroup = document.getElementById("name-group");
   const toggleLink = document.getElementById("toggle-link");
 
-  if (!formTitle || !submitBtn || !toggleText|| !nameGroup) return;
+  if (!formTitle || !submitBtn || !toggleText || !nameGroup) return;
 
   formTitle.innerText = isLogin ? "Login" : "Register";
   submitBtn.innerText = isLogin ? "Login" : "Register";
-  
-  toggleText.innerText = isLogin 
-  ? "Don't have an account?" 
-  : "Already have an account?";
+
+  toggleText.innerText = isLogin
+    ? "Don't have an account?"
+    : "Already have an account?";
 
   toggleLink.innerText = isLogin ? "Register" : "Login";
 
@@ -50,22 +51,35 @@ async function handleSubmit() {
   const email = document.getElementById("email")?.value;
   const password = document.getElementById("password")?.value;
 
-  if (!email || !password) {
-    alert("Email and password are required");
-    return;
-  }
-
   const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 
-  // Send name only if registering
   const body = isLogin
     ? { email, password }
-    : { name: document.getElementById("name")?.value, email, password };
+    : { name: document.getElementById("name")?.value, 
+      email,
+       password 
+      };
+  
+  const res = await fetch(`http://localhost:5000${endpoint}`, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(body),
+  });
 
-  if (!isLogin && !body.name) {
-    alert("Name is required for registration");
+  const data = await res.json(); 
+
+  if (!res.ok) {
+    alert(data.message);
     return;
   }
+
+  if(isLogin){
+    localStorage.setItem("token", data.token);
+    window.location.href = "projects.html"; 
+  } else {
+    alert("User registered successfully! You can now log in.");
+    toggleForm(); // Switch to login after successful registration
+  } 
 
   try {
     const res = await fetch(`http://localhost:5000${endpoint}`, {
@@ -85,8 +99,8 @@ async function handleSubmit() {
     if (isLogin && data.token) {
       token = data.token;
       localStorage.setItem("token", token);
-      window.location.href = "tasks.html";
-    } 
+      window.location.href = "projects.html";
+    }
     // Register flow
     else if (!isLogin) {
       alert("User registered successfully! You can now log in.");
@@ -99,43 +113,10 @@ async function handleSubmit() {
   }
 }
 
-// LOGIN FUNCTION
-/*async function login() {
-  try {
-    const email = document.getElementById("email").value;
-    const password = document.getElementById("password").value;
-
-    const res = await fetch("http://localhost:5000/api/auth/login", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify({ email, password })
-    });
-
-    const data = await res.json();
-
-    if (!data.token) {
-      alert(data.message || "Login failed");
-      return;
-    }
-
-    token = data.token;
-    localStorage.setItem("token", token);
-
-    // Redirect to tasks page
-    window.location.href = "tasks.html";
-
-  } catch (error) {
-    console.error(error);
-    alert("Error logging in");
-  }
-}*/
-
 // GET TASKS
 async function getTasks() {
   try {
-    const res = await fetch("http://localhost:5000/api/tasks", {
+    const res = await fetch(`http://localhost:5000/api/tasks/project/${currentProjectId}`, {
       headers: {
         "Authorization": "Bearer " + token
       }
@@ -152,28 +133,9 @@ async function getTasks() {
       const li = document.createElement("li");
 
       li.innerHTML = `
-  <span>
-    <strong>${task.title}</strong> 
-    <small style="color: ${task.status === "done" ? "green" :
-          task.status === "in-progress" ? "orange" :
-            task.status === "awaiting" ? "purple" :
-              "gray"
-        }">
-      (${task.status})
-    </small>
-  </span>
-
-  <div>
-    <select onchange="updateStatus('${task._id}', this.value)">
-      <option value="pending" ${task.status === "pending" ? "selected" : ""}>pending</option>
-      <option value="in-progress" ${task.status === "in-progress" ? "selected" : ""}>in-progress</option>
-      <option value="awaiting" ${task.status === "awaiting" ? "selected" : ""}>awaiting</option>
-      <option value="done" ${task.status === "done" ? "selected" : ""}>done</option>
-    </select>
-
-    <button onclick="deleteTask('${task._id}')">❌</button>
-  </div>
-`;
+      <span>${task.title}</span>
+      <button onclick="deleteTask('${task._id}')">❌</button>
+    `;
       list.appendChild(li);
     });
 
@@ -185,26 +147,33 @@ async function getTasks() {
 // CREATE TASK
 async function createTask() {
   try {
-    const titleInput = document.getElementById("taskTitle");
-    if (!titleInput) return;
-
-    const title = titleInput.value;
+    const input = document.getElementById("taskTitle");
+    const title = input.value.trim();
 
     if (!title) {
       alert("Task title is required");
       return;
     }
 
-    await fetch("http://localhost:5000/api/tasks", {
+    const res = await fetch("http://localhost:5000/api/tasks", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token
       },
-      body: JSON.stringify({ title })
+      body: JSON.stringify({
+        title,
+        projectId: currentProjectId,
+       }),
     });
 
-    titleInput.value = "";
+    if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Error creating task");
+      return;
+    }
+
+    input.value = "";
     getTasks();
 
   } catch (error) {
@@ -224,6 +193,12 @@ async function updateStatus(id, status) {
       body: JSON.stringify({ status })
     });
 
+     if (!res.ok) {
+      const data = await res.json();
+      alert(data.message || "Failed to update task");
+      return;
+    }
+    
     getTasks();
 
   } catch (error) {
@@ -246,6 +221,86 @@ async function deleteTask(id) {
   } catch (error) {
     console.error(error);
   }
+}
+
+// Redirect if no project selected
+if (path.endsWith("tasks.html") && !currentProjectId) {
+  window.location.href = "projects.html";
+}
+
+//load projects on projects page
+async function loadProjectsPage() {
+  try {
+    const res = await fetch("http://localhost:5000/api/projects", {
+      headers: {
+        Authorization: "Bearer " + token,
+      },
+    });
+
+    const projects = await res.json();
+
+    const list = document.getElementById("projectList");
+    if (!list) return;
+
+    list.innerHTML = "";
+
+    projects.forEach((project) => {
+      const li = document.createElement("li");
+
+      li.innerHTML = `
+        <span>${project.name}</span>
+        <button onclick="openProject('${project._id}')">
+          Open Tasks
+        </button>
+      `;
+
+      list.appendChild(li);
+    });
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+//create project
+async function createProject() {
+  try {
+    const input = document.getElementById("projectName");
+    const name = input.value.trim();
+
+    if (!name) {
+      alert("Project name is required");
+      return;
+    }
+
+    const res = await fetch("http://localhost:5000/api/projects", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify({ name }),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Error creating project");
+      return;
+    }
+
+    input.value = "";
+    loadProjectsPage();
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+// Open project tasks page
+function openProject(projectId) {
+  localStorage.setItem("projectId", projectId);
+  window.location.href = "tasks.html";
 }
 
 // LOGOUT
