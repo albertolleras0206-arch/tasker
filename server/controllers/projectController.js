@@ -1,60 +1,38 @@
 const Project = require("../models/Project");
 const User = require("../models/User");
+const {isOwner, isMember} = require("../utils/projectHelper");
 
 // Create a new project
 exports.createProject = async (req, res) => {
-    try {
-        const name  = req.body.name?.trim();
+  try {
+    const project = await Project.create({
+      name: req.body.name,
+      owner: req.user.id,
+      members: [],
+    });
 
-        if (!name) {
-            return res.status(400).json({ message: "Project name is required" });
-        }
-
-        const existing = await Project.findOne({ 
-            name,
-            owner: req.user.id 
-        });
-
-        if (existing) {
-            return res.status(400).json({ message: "Project with that name already exists" });
-        }
-
-        const project = await Project.create({
-            name,
-            owner: req.user.id,
-            members: [],
-        });
-
-        await project.populate("owner", "email name");
-
-        res.status(201).json(project);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error creating project" });
-    }
+    res.status(201).json(project);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 // Get all projects where user is owner or member
 exports.getProjects = async (req, res) => {
-    try {
-        const userId = req.user.id;
+  try {
+    const userId = req.user.id;
 
-        const projects = await Project.find({
-            $or: [
-                { owner: userId },
-                { members: userId }
-            ]
-        }).populate("owner", "email name")
-        .populate("members", "email name")
-        .sort({ createdAt: -1 });
+    const projects = await Project.find({
+      $or: [
+        { owner: userId },
+        { members: userId },
+      ],
+    });
 
-        res.json(projects);
-
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: "Error fetching projects" });
-    }
+    res.json(projects);
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
 };
 
 //  Add user to project (ONLY OWNER)
@@ -70,7 +48,7 @@ exports.addMember = async (req, res) => {
     }
 
     // Only owner can add users
-    if (project.owner.toString() !== req.user.id) {
+    if (!isOwner(project, req.user.id)) {
       return res.status(403).json({ message: "Only owner can add users" });
     }
 
@@ -81,17 +59,13 @@ exports.addMember = async (req, res) => {
       return res.status(404).json({ message: "User not found" });
     }
 
-    // ❗ Prevent adding owner as member
-    if (project.owner.toString() === user._id.toString()) {
+    // Prevent adding owner as member
+    if (isOwner(project, user._id.toString())) {
       return res.status(400).json({ message: "Owner is already part of the project" });
     }
 
     // Prevent duplicate members
-    const alreadyMember = project.members.some(
-      member => member.toString() === user._id.toString()
-    );
-
-    if (alreadyMember) {
+    if (isMember(project, user._id.toString())) {
       return res.status(400).json({ message: "User already in project" });
     }
 
@@ -118,27 +92,23 @@ exports.removeMember = async (req, res) => {
     }
 
     // Only owner can remove users
-    if (project.owner.toString() !== req.user.id) {
+    if (!isOwner(project, req.user.id)) {
       return res.status(403).json({ message: "Only owner can remove users" });
     }
 
     // Prevent removing owner
-    if (project.owner.toString() === userId) {
+    if (isOwner(project, userId)) {
       return res.status(400).json({ message: "Cannot remove project owner" });
     }
 
     // Check if user is actually a member
-    const isMember = project.members.some(
-      member => member.toString() === userId
-    );
-
-    if (!isMember) {
+    if (!isMember(project, userId)) {
       return res.status(404).json({ message: "User is not in the project" });
     }
 
     // Remove user
     project.members = project.members.filter(
-      member => member.toString() !== userId
+      (member) => member.toString() !== userId
     );
 
     await project.save();

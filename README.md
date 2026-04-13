@@ -1,79 +1,209 @@
-# 📝 Tasker – Full Stack Task Management App
+# Tasker 🧩
 
-A full-stack task management application built with **Node.js, Express, MongoDB, and vanilla JavaScript**.
-Users can register, log in, and manage their personal tasks with full CRUD functionality.
+Tasker is a full-stack task management application that allows users to organize work into projects and collaborate with multiple users.
+
+Built using **Node.js, Express, MongoDB, and Vanilla JavaScript**, the application supports authentication, project-based task organization, and role-based permissions.
 
 ---
 
 ## 🚀 Features
 
-* 🔐 User Authentication (JWT-based)
-* 🧑‍💻 Register & Login system
-* 🔒 Protected routes with middleware
-* ✅ Create, Read, Update, Delete (CRUD) tasks
-* 📌 Task status management:
+### 🔐 Authentication
 
-  * `pending`
-  * `in-progress`
-  * `awaiting`
-  * `done`
-* 🎨 Simple frontend with vanilla JavaScript
-* 🌐 RESTful API structure
-* 🧱 MVC architecture (Model-View-Controller)
+* User registration and login
+* JWT-based authentication
+* Protected routes
+
+### 📁 Projects
+
+* Create projects
+* Each project has:
+
+  * Owner
+  * Members
+* Only project members can access project data
+
+### ✅ Tasks
+
+* Tasks belong to a specific project
+* Create, view, update, and delete tasks
+* Default task status: `pending`
+
+### 🔒 Role-Based Permissions
+
+* **Project Owner**
+
+  * Can update task status
+  * Can delete tasks
+* **Project Members**
+
+  * Can view tasks
+  * Cannot modify or delete tasks
 
 ---
 
-## 🏗️ Tech Stack
+## 🧱 Tech Stack
 
 ### Backend
 
 * Node.js
 * Express.js
-* MongoDB Atlas
+* MongoDB
 * Mongoose
 * JSON Web Tokens (JWT)
-* dotenv
 
 ### Frontend
 
 * HTML
 * CSS
-* JavaScript (Vanilla)
+* Vanilla JavaScript
 
 ---
 
-## 📁 Project Structure
+## 📂 Project Structure
 
 ```
 tasker/
 │
 ├── server/
 │   ├── controllers/
-│   │   └── taskController.js
+│   │   ├── authController.js
+│   │   ├── taskController.js
+│   │   └── projectController.js
+│   │
+│   ├── models/
+│   │   ├── User.js
+│   │   ├── Task.js
+│   │   └── Project.js
+│   │
+│   ├── routes/
+│   │   ├── authRoutes.js
+│   │   ├── taskRoutes.js
+│   │   └── projectRoutes.js
+│   │
 │   ├── middleware/
 │   │   └── authMiddleware.js
-│   ├── models/
-│   │   ├── Task.js
-│   │   └── User.js
-│   ├── routes/
-│   │   ├── auth.js
-│   │   └── taskRoutes.js
+│   │
 │   └── server.js
 │
 ├── frontend/
 │   ├── index.html
+│   ├── projects.html
 │   ├── tasks.html
 │   ├── app.js
 │   └── style.css
 │
-├── .env
-├── package.json
 └── README.md
 ```
 
 ---
 
-## ⚙️ Installation & Setup
+## 🔄 Application Flow
+
+```
+Login → Projects Page → Select Project → Tasks Page
+```
+
+1. User logs in
+2. Redirected to **Projects Dashboard**
+3. User creates or selects a project
+4. User navigates to **Tasks Page**
+5. Tasks are managed within the selected project
+
+---
+
+## 🔌 API Endpoints
+
+### 🔐 Auth
+
+```
+POST /api/auth/register
+POST /api/auth/login
+```
+
+---
+
+### 📁 Projects
+
+```
+GET    /api/projects
+POST   /api/projects
+PUT    /api/projects/:id (owner only)
+DELETE /api/projects/:id (owner only)
+```
+
+---
+
+### ✅ Tasks
+
+#### Create Task
+
+```
+POST /api/tasks
+Body:
+{
+  "title": "Task name",
+  "projectId": "project_id"
+}
+```
+
+#### Get Tasks by Project
+
+```
+GET /api/tasks/project/:projectId
+```
+
+#### Update Task (Owner Only)
+
+```
+PUT /api/tasks/:id
+Body:
+{
+  "status": "in-progress"
+}
+```
+
+#### Delete Task (Owner Only)
+
+```
+DELETE /api/tasks/:id
+```
+
+---
+
+## 🔐 Authorization Logic
+
+### Project Access
+
+A user can access a project if:
+
+* They are the **owner**, OR
+* They are included in the **members array**
+
+### Task Permissions
+
+| Action       | Owner | Member |
+| ------------ | ----- | ------ |
+| View Tasks   | ✅     | ✅      |
+| Create Tasks | ✅     | ✅      |
+| Update Tasks | ✅     | ❌      |
+| Delete Tasks | ✅     | ❌      |
+
+---
+
+## 🧠 Key Design Decisions
+
+* Tasks are **scoped to projects**
+* Permissions are enforced at both:
+
+  * Backend (security)
+  * Frontend (UX)
+* JWT is used for stateless authentication
+* MVC architecture keeps code modular and scalable
+
+---
+
+## ⚙️ Setup Instructions
 
 ### 1. Clone the repository
 
@@ -82,26 +212,22 @@ git clone https://github.com/your-username/tasker.git
 cd tasker
 ```
 
----
-
 ### 2. Install dependencies
 
 ```
+cd server
 npm install
 ```
 
----
-
 ### 3. Configure environment variables
 
-Create a `.env` file in the root:
+Create a `.env` file in `/server`:
 
 ```
-MONGO_URI=your_mongodb_connection_string
-JWT_SECRET=your_secret_key
+PORT=5000
+MONGO_URI=your_mongodb_uri
+JWT_SECRET=your_secret
 ```
-
----
 
 ### 4. Run the server
 
@@ -109,17 +235,9 @@ JWT_SECRET=your_secret_key
 npm run dev
 ```
 
-Server will run on:
+### 5. Open frontend
 
-```
-http://localhost:5000
-```
-
----
-
-### 5. Open the frontend
-
-Open manually in your browser:
+Open:
 
 ```
 frontend/index.html
@@ -127,74 +245,18 @@ frontend/index.html
 
 ---
 
-## 🔐 Authentication Flow
+## 🧪 Future Improvements
 
-1. User logs in via `index.html`
-2. Backend returns a JWT token
-3. Token is stored in `localStorage`
-4. Protected routes require:
-
-   ```
-   Authorization: Bearer <token>
-   ```
-5. Tasks page (`tasks.html`) is only accessible if authenticated
-
----
-
-## 📡 API Endpoints
-
-### Auth Routes
-
-```
-POST /api/auth/register
-POST /api/auth/login
-```
-
-### Task Routes (Protected)
-
-```
-GET    /api/tasks        → Get all tasks
-POST   /api/tasks        → Create task
-PUT    /api/tasks/:id    → Update task
-DELETE /api/tasks/:id    → Delete task
-```
-
----
-
-## 🧪 Testing
-
-You can test the API using:
-
-* Postman
-* Thunder Client (VS Code)
-
----
-
-## ⚠️ Known Issues / Notes
-
-* Frontend is served locally (no deployment yet)
-* CORS must be enabled on backend for frontend requests
-* Tokens are stored in localStorage (for development purposes)
-
----
-
-## 🚀 Future Improvements
-
-* 🌐 Deploy backend (Render / Railway)
-* ⚛️ Migrate frontend to React
-* 📱 Improve UI/UX design
-* 🗂️ Add task filtering & search
-* ⏰ Add due dates and priorities
-* 👥 Multi-user collaboration
+* Invite users to projects
+* Assign tasks to specific users
+* Add deadlines and priorities
+* Real-time updates (Socket.io)
+* UI improvements (Kanban board)
 
 ---
 
 ## 👨‍💻 Author
 
-**Alberto Lleras**
+Built by >Alberto Lleras 🚀
 
 ---
-
-## 📄 License
-
-This project is open-source and available under the MIT License.
