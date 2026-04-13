@@ -5,7 +5,7 @@ const Project = require("../models/Project");
 const isProjectMember = (project, userId) => {
   return (
     project.owner.toString() === userId ||
-    project.members.some(member => member.toString() === userId)
+    project.members.some((member) => member.toString() === userId)
   );  
 }
 
@@ -53,6 +53,8 @@ exports.getTasksByProject = async (req, res) => {
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
+
+    const isMember = isProjectMember(project, req.user.id);
 
     if (!isMember) {
       return res.status(403).json({ message: "Not authorized" });

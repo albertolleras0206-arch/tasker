@@ -6,7 +6,9 @@ const {
   createProject,
   getProjects,
   addMember,
-  removeMember
+  removeMember,
+  updateProject,
+  deleteProject,
 } = require("../controllers/projectController");
 
 //  Create project
@@ -20,5 +22,11 @@ router.post("/:projectId/members", authMiddleware, addMember);
 
 // Remove member from project
 router.delete("/:projectId/members/:userId", authMiddleware, removeMember);
+
+// Update project (name)
+router.put("/:projectId", authMiddleware, updateProject);
+
+// Delete project (ONLY OWNER)
+router.delete("/:projectId", authMiddleware, deleteProject);
 
 module.exports = router;

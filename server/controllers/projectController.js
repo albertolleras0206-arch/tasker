@@ -1,15 +1,31 @@
 const Project = require("../models/Project");
 const User = require("../models/User");
-const {isOwner, isMember} = require("../utils/projectHelper");
+const { isOwner, isMember } = require("../utils/projectHelper");
+
 
 // Create a new project
 exports.createProject = async (req, res) => {
   try {
+    // Check for duplicate project name for this user
+    const existingProject = await Project.findOne({
+      name: req.body.name,
+      owner: req.user.id,
+    });
+
+    if (existingProject) {
+      return res.status(400).json({ message: "Project name already exists" });
+    }
+
     const project = await Project.create({
       name: req.body.name,
       owner: req.user.id,
       members: [],
     });
+
+    if (!name || name.trim() === "") {
+      alert("Project name is required");
+      return;
+    }
 
     res.status(201).json(project);
   } catch (error) {
@@ -120,3 +136,81 @@ exports.removeMember = async (req, res) => {
     res.status(500).json({ message: "Error removing user" });
   }
 };
+
+
+// Update project name (ONLY OWNER)
+exports.updateProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+    const { name } = req.body;
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    // Only owner can update
+    if (project.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    project.name = name || project.name;
+    await project.save();
+
+    res.json(project);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+//delete project (ONLY OWNER) 
+
+exports.deleteProject = async (req, res) => {
+  try {
+    const { projectId } = req.params;
+
+    const project = await Project.findById(projectId);
+
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
+
+    // Only owner can delete
+    if (project.owner.toString() !== req.user.id) {
+      return res.status(403).json({ message: "Not authorized" });
+    }
+
+    await project.deleteOne();
+
+    res.json({ message: "Project deleted successfully" });
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
+  }
+};
+
+// edit project name (ONLY OWNER)
+async function editProject(projectId, currentName) {
+  const newName = prompt("Edit project name:", currentName);
+
+  if (!newName) return;
+
+  const res = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
+    method: "PUT",
+    headers: {
+      "Content-Type": "application/json",
+      Authorization: "Bearer " + token,
+    },
+    body: JSON.stringify({ name: newName }),
+  });
+
+  if (!res.ok) {
+    const data = await res.json();
+    alert(data.message);
+    return;
+  }
+
+  loadProjectsPage();
+}
