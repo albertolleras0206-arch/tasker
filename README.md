@@ -19,46 +19,6 @@ Tasker is a full-stack task management application that allows users to create p
 
 ---
 
-## 📁 Project Structure (MVC)
-tasker/
-│
-├── frontend/
-│ ├── app.js
-│ ├── index.html
-│ ├── projects.html
-│ ├── tasks.html
-│ └── style.css
-│
-├── server/
-│ ├── controllers/
-│ │ ├── authController.js
-│ │ ├── projectController.js
-│ │ └── taskController.js
-│ │
-│ ├── middleware/
-│ │ ├── authMiddleware.js
-│ │ └── projectMiddleware.js
-│ │
-│ ├── models/
-│ │ ├── Project.js
-│ │ ├── Task.js
-│ │ └── User.js
-│ │
-│ ├── routes/
-│ │ ├── auth.js
-│ │ ├── projectRoutes.js
-│ │ └── taskRoutes.js
-│ │
-│ └── utils/
-│ └── projectHelper.js
-│
-├── package.json
-├── package-lock.json
-├── README.md
-└── server.js
-
----
-
 ## 🔐 Authentication
 
 - JWT-based authentication
