@@ -57,8 +57,6 @@ tasker/
 ├── README.md
 └── server.js
 
-
-
 ---
 
 ## 🔐 Authentication
