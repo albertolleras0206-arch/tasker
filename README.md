@@ -1,161 +1,174 @@
-# 🧠 Tasker — Full Stack Task Management App
+# 🚀 Tasker - Full Stack Task Management App
 
-Tasker is a full-stack task management application that allows users to create projects, manage tasks, and collaborate with role-based permissions. The application follows a clean MVC architecture and uses vanilla JavaScript on the frontend.
+Tasker is a full-stack task management application built with Node.js, Express, MongoDB, and Vanilla JavaScript. It allows users to manage projects, collaborate with team members, and track tasks efficiently.
 
 ---
 
-## 🚀 Tech Stack
+## 🧠 Features
+
+### 🔐 Authentication
+
+* User registration and login
+* JWT-based authentication
+* Protected routes and session handling
+
+### 📁 Projects
+
+* Create, read, update, and delete projects
+* Project ownership system
+* Add/remove project members
+* Role-based access:
+
+  * Owner → full control
+  * Members → read-only access
+
+### ✅ Tasks
+
+* Create, update, delete tasks
+* Tasks linked to specific projects
+* Task status management:
+
+  * Pending
+  * In Progress
+  * Done
+* Assign tasks to project members
+* Real-time UI updates
+
+---
+
+## 🏗️ Tech Stack
 
 ### Backend
-- Node.js
-- Express.js
-- MongoDB (Mongoose)
-- JSON Web Tokens (JWT)
+
+* Node.js
+* Express.js
+* MongoDB (Mongoose)
+* JWT Authentication
 
 ### Frontend
-- HTML
-- CSS
-- Vanilla JavaScript (no frameworks)
+
+* HTML
+* CSS
+* Vanilla JavaScript (no frameworks)
 
 ---
 
-## 🔐 Authentication
+## 📂 Project Structure
 
-- JWT-based authentication
-- Users can register and log in
-- Token is stored in `localStorage`
-- Protected routes are secured using `authMiddleware`
+```
+tasker/
 
----
+frontend/
+  app.js
+  index.html
+  projects.html
+  tasks.html
+  style.css
 
-## 📁 Projects System
+server/
+  controllers/
+  models/
+  routes/
+  middleware/
+  utils/
 
-### Features
-- Create projects
-- View all projects (owner + members)
-- Update project name ✏️
-- Delete project 🗑️
-- Add members by email (owner only)
-- Remove members (owner only)
+.env
+package.json
+README.md
 
-### Project Model
-- `name`
-- `owner` (User reference)
-- `members` (Array of Users)
-
-### Permissions
-- **Owner**
-  - Can edit project
-  - Can delete project
-  - Can manage members
-- **Members**
-  - Can only view projects
-
-### Validation
-- Prevent duplicate project names per user
 
 ---
 
-## ✅ Tasks System
+## ⚙️ Installation & Setup
 
-### Features
-- Create tasks within a project
-- View tasks by project
-- Update task title
-- Update task status (`pending`, `in-progress`, `awaiting`, `done`)
-- Delete tasks
+### 1. Clone the repository
 
-### Task Model
-- `title`
-- `status`
-- `user` (creator)
-- `project` (reference to Project)
+```bash
+git clone https://github.com/your-username/tasker.git
+cd tasker
+```
+
+---
+
+### 2. Install dependencies
+
+```bash
+npm install
+```
+
+---
+
+### 3. Create `.env` file
+
+```env
+PORT=5000
+MONGO_URI=your_mongodb_connection
+JWT_SECRET=your_secret_key
+```
+
+---
+
+### 4. Run the server
+
+```bash
+npm run dev
+```
+
+---
+
+### 5. Open in browser
+
+```
+http://localhost:5000
+```
+
+---
+
+## 🔄 Application Flow
+
+1. User logs in or registers
+2. Redirected to Projects page
+3. Create or select a project
+4. Navigate to Tasks page
+5. Manage tasks (CRUD, status, assignment)
 
 ---
 
 ## 🔒 Authorization Rules
 
-### Project Access
-A user can access a project if:
-- They are the **owner**, or
-- They are included in the **members list**
+* Only project members can view tasks
+* Only project owner can:
 
-### Task Permissions
-- **Owner**
-  - Can create, update, and delete tasks
-- **Members**
-  - Can only view tasks
+  * Edit/delete tasks
+  * Assign tasks
+  * Modify project
 
 ---
 
-## 🌐 Frontend
+## 🐞 Bugs Fixed During Development
 
-### Pages
-- `index.html` → Login/Register
-- `projects.html` → Manage projects
-- `tasks.html` → Manage tasks inside a project
-
----
-
-## 🔄 Application Flow
-Login → Projects → Select Project → Tasks
----
-
-## 🧠 State Management
-
-- `token` stored in `localStorage`
-- `projectId` stored when selecting a project
-- `projectName` stored for display in tasks page
+* Fixed route protection logic
+* Fixed localStorage issues (projectId persistence)
+* Fixed frontend `file://` execution issue
+* Fixed controller crashes (undefined variables)
+* Fixed async/await UI rendering issues
+* Fixed incorrect request payload structure
+* Fixed schema typo (`assignedTo`)
 
 ---
 
-## 🔗 API Endpoints
+## 🚧 Future Improvements
 
-### Auth
-POST /api/auth/register
-POST /api/auth/login
-
-### Projects
-GET /api/projects
-POST /api/projects
-PUT /api/projects/:projectId
-DELETE /api/projects/:projectId
-POST /api/projects/:projectId/members
-DELETE /api/projects/:projectId/members/:userId
-
-### Tasks
-GET /api/tasks/project/:projectId
-POST /api/tasks
-PUT /api/tasks/:taskId
-DELETE /api/tasks/:taskId
-
+* Role-based UI (hide controls for members)
+* Kanban board (Trello-style interface)
+* Due dates for tasks
+* Notifications system
+* Drag-and-drop task management
 
 ---
 
-## ⚙️ Key Fixes & Improvements
+## 👨‍💻 Author
 
-- Fixed route protection logic (operator precedence bug)
-- Fixed `projectId` not being stored properly between pages
-- Fixed `openProject()` not executing due to global scope issue
-- Fixed frontend issues caused by using `file://` instead of a local server
-- Fixed backend crash due to undefined `isMember` variable
-- Implemented reusable helper:
-  ```js
-  isProjectMember(project, userId)
+**Alberto Lleras**
 
-----
-  📌 Current Status
-Authentication system complete
-Projects CRUD complete
-Tasks CRUD complete
-Role-based backend permissions implemented
-Frontend fully functional
-Navigation and state management working correctly
-
-----
-🚧 Future Improvements
-Role-based UI (hide actions for non-owners)
-Assign tasks to specific users
-Add due dates to tasks
-Kanban board (Trello-style interface)
-Notifications / activity tracking
+---
