@@ -250,27 +250,47 @@ async function getTasks() {
       }
     });
 
-    const tasks = await res.json();
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Error fetching tasks:", data.message);
+      return;
+    }
 
     const list = document.getElementById("taskList");
     if (!list) return;
 
     list.innerHTML = "";
 
-    tasks.forEach(task => {
+    data.forEach(task => {
       const li = document.createElement("li");
 
       li.innerHTML = `
-      <li>
-        <input value="${task.title}" onchange="updateTask('${task._id}', this.value)" />
-        <select onchange="updateStatus('${task._id}', this.value)">
+        <input 
+        name="taskTitle-${task._id}"
+        value="${task.title}" 
+        onchange="updateTask('${task._id}', { title: this.value })" 
+        />
+
+        <select onchange="updateTask('${task._id}', { assignedTo: this.value || null })">
+        <option value="">Unassigned</option>
+          ${projectMembers.map(member => `
+          <option value="${member._id}" 
+          ${task.assignedTo && task.assignedTo._id === member._id ? "selected" : ""}>
+          ${member.name}
+        </option>
+        `).join("")}
+        </select>
+
+        <select name="taskStatus-${task._id}" 
+        onchange="updateTask('${task._id}', { status: this.value })">
         <option value="pending" ${task.status === "pending" ? "selected" : ""}>Pending</option>
         <option value="in-progress" ${task.status === "in-progress" ? "selected" : ""}>In Progress</option>
         <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
         </select>
-        <button onclick="deleteTask('${task._id}')">❌</button>
-      </li>
-    `;
+        <button onclick="deleteTask('${task._id}')"; style="margin-left:10px;">delete</button>
+        `;
+
       list.appendChild(li);
     });
 
@@ -302,36 +322,36 @@ async function createTask() {
       }),
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      const data = await res.json();
       alert(data.message || "Error creating task");
       return;
     }
 
     input.value = "";
-    getTasks();
+    getTasks(); //refresh list
 
   } catch (error) {
     console.error(error);
   }
 }
 
-// UPDATE TASK STATUS
-async function updateTask(id, title) {
+// UPDATE TASK STATUS, FUTURE FIELDS OR TITLE
+async function updateTask(id, updates) {
   try {
-    await fetch(`http://localhost:5000/api/tasks/${id}`, {
+    const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
         "Authorization": "Bearer " + token
       },
-      body: JSON.stringify({ title })
+      body: JSON.stringify(updates)
     });
 
     const data = await res.json();
 
     if (!res.ok) {
-  
       alert(data.message || "Failed to update task");
       return;
     }
@@ -346,12 +366,19 @@ async function updateTask(id, title) {
 // DELETE TASK
 async function deleteTask(id) {
   try {
-    await fetch(`http://localhost:5000/api/tasks/${id}`, {
+    const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
       method: "DELETE",
       headers: {
         "Authorization": "Bearer " + token
       }
     });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Failed to delete task");
+      return;
+    }
 
     getTasks();
 
@@ -360,9 +387,34 @@ async function deleteTask(id) {
   }
 }
 
+//project members and assignment
+let projectMembers = [];
+
+async function loadProjectMembers() {
+  try {
+    const res = await fetch(`http://localhost:5000/api/projects/${currentProjectId}`, {
+      headers: {
+        Authorization: "Bearer " + token
+      }
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      console.error("Error loading members:", data.message);
+      return;
+    }
+
+    projectMembers = data.members || [];
+
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 // UI
 //load projects on projects page
-document.addEventListener("DOMContentLoaded", () => {
+document.addEventListener("DOMContentLoaded", async () => {
   const path = window.location.pathname;
 
   //projects page
@@ -376,11 +428,17 @@ document.addEventListener("DOMContentLoaded", () => {
     const projectTitle = document.getElementById("project-title");
 
     if (projectTitle && projectName) {
-      projectTitle.textContent = projectName;
+      projectTitle.textContent = "Project: " + projectName;
     }
-  }
-  getTasks();
 
+    if (!currentProjectId) {
+      window.location.href = "projects.html";
+      return;
+    }
+
+    await loadProjectMembers();
+    getTasks();
+  }
 });
 
 
@@ -390,12 +448,9 @@ function logout() {
   window.location.href = "index.html";
 }
 
-// AUTO LOAD TASKS 
-if (window.location.pathname.includes("tasks.html")) {
-  getTasks();
-}
-
-
+//global functions
 window.editProject = editProject;
 window.deleteProject = deleteProject;
 window.openProject = openProject;
+window.deleteTask = deleteTask;
+window.updateTask = updateTask;

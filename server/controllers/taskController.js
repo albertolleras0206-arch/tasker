@@ -68,7 +68,6 @@ exports.getTasksByProject = async (req, res) => {
     }
 
     const tasks = await Task.find({ project: projectId })
-      .populate("project", "owner")
       .populate("assignedTo", "name");
 
     res.json(tasks);
