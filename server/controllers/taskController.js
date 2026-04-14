@@ -6,13 +6,13 @@ const isProjectMember = (project, userId) => {
   return (
     project.owner.toString() === userId ||
     project.members.some((member) => member.toString() === userId)
-  );  
+  );
 }
 
 // CREATE TASK
 exports.createTask = async (req, res) => {
   try {
-    const { title, projectId } = req.body;
+    const { title, projectId, assignedTo } = req.body;
 
     //1. validate that project exists
     const project = await Project.findById(projectId);
@@ -21,13 +21,19 @@ exports.createTask = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    // validate is user is member or owner
-    const isMember = 
-    project.owner.toString() === req.user.id ||
-    project.members.some(member => member.toString() === req.user.id);
+    //checking if assigned 
+    if (assignedTo) {
+      //only owner may assign task to other members
+      if (project.owner.toString() !== req.user.id) {
+        return res.status(403).json({ message: "Only project owner can assign tasks" });
+      }
 
-    if (!isMember) {
-      return res.status(403).json({ message: "You are not a member of this project" });
+      // validate is user is member or owner
+      const isMember = isProjectMember(project, req.user.id);
+
+      if (!isMember) {
+        return res.status(403).json({ message: "You are not a member of this project" });
+      }
     }
 
     //create task
@@ -35,7 +41,8 @@ exports.createTask = async (req, res) => {
       title,
       user: req.user.id,
       project: projectId,
-      status:"pending"
+      assignedTo: assignedTo || null,
+      status: "pending"
     });
 
     res.status(201).json(task);
@@ -61,8 +68,9 @@ exports.getTasksByProject = async (req, res) => {
     }
 
     const tasks = await Task.find({ project: projectId })
-      .populate("project", "owner");
-      
+      .populate("project", "owner")
+      .populate("assignedTo", "name");
+
     res.json(tasks);
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -74,15 +82,15 @@ exports.updateTask = async (req, res) => {
   try {
     const { id } = req.params;
 
-    const task= await Task.findById(id).populate("project");
+    const task = await Task.findById(id).populate("project");
 
     if (!task) {
       return res.status(404).json({ message: "Task not found" });
     }
-    
+
     // owner(admin user) may update else none.
 
-    if(task.project.owner.toString() !== req.user.id) {
+    if (task.project.owner.toString() !== req.user.id) {
       return res.status(403).json({ message: "Only project owner can update tasks" });
     }
 
@@ -100,7 +108,7 @@ exports.updateTask = async (req, res) => {
 // DELETE TASK
 exports.deleteTask = async (req, res) => {
   try {
-    const {id} = req.params;
+    const { id } = req.params;
 
     const task = await Task.findById(id).populate("project");
 

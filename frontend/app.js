@@ -123,17 +123,15 @@ async function loadProjectsPage() {
       li.innerHTML = `
        <span>${project.name}</span>
 
-  <button onclick="openProject('${project._id}', '${project.name}')">
-    Open Tasks
-  </button>
-
-  <button onclick="editProject('${project._id}', '${project.name}')">
-    
-  </button>
-
-  <button onclick="deleteProject('${project._id}')">
-    
-  </button>
+      <button onclick="openProject('${project._id}', '${project.name}')">
+       Open Tasks
+      </button>
+      <button onclick="editProject('${project._id}', '${project.name}')">
+      Edit
+      </button>
+      <button onclick="deleteProject('${project._id}')">
+       Delete
+      </button>
       `;
 
       list.appendChild(li);
@@ -330,8 +328,10 @@ async function updateTask(id, title) {
       body: JSON.stringify({ title })
     });
 
+    const data = await res.json();
+
     if (!res.ok) {
-      const data = await res.json();
+  
       alert(data.message || "Failed to update task");
       return;
     }
@@ -379,8 +379,8 @@ document.addEventListener("DOMContentLoaded", () => {
       projectTitle.textContent = projectName;
     }
   }
-    getTasks();
-  
+  getTasks();
+
 });
 
 
