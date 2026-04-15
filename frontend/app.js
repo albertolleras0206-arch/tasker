@@ -282,8 +282,10 @@ async function getTasks() {
         `).join("")}
         </select>
 
-        <select name="taskStatus-${task._id}" 
+        <select 
+        name="taskStatus-${task._id}" 
         onchange="updateTask('${task._id}', { status: this.value })">
+        
         <option value="pending" ${task.status === "pending" ? "selected" : ""}>Pending</option>
         <option value="in-progress" ${task.status === "in-progress" ? "selected" : ""}>In Progress</option>
         <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
