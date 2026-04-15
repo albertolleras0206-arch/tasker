@@ -3,6 +3,17 @@ let token = localStorage.getItem("token");
 let currentProjectId = localStorage.getItem("projectId");
 const path = window.location.pathname;
 
+//get user ID 
+function getUserFromToken(token) {
+  try {
+    return JSON.parse(atob(token.split(".")[1]));
+  } catch {
+    return null;
+  }
+}
+
+const currentUser = getUserFromToken(token);
+
 // Clean invalid tokens
 if (token === "undefined" || token === "null") {
   localStorage.removeItem("token");
@@ -269,10 +280,14 @@ async function getTasks() {
         <input 
         name="taskTitle-${task._id}"
         value="${task.title}" 
+        ${!isOwner ? "disabled" : ""}
         onchange="updateTask('${task._id}', { title: this.value })" 
         />
 
-        <select onchange="updateTask('${task._id}', { assignedTo: this.value || null })">
+        <select 
+        ${!isOwner ? "disabled" : ""}
+        onchange="updateTask('${task._id}', { assignedTo: this.value || null })"
+        >
         <option value="">Unassigned</option>
           ${projectMembers.map(member => `
           <option value="${member._id}" 
@@ -284,13 +299,19 @@ async function getTasks() {
 
         <select 
         name="taskStatus-${task._id}" 
-        onchange="updateTask('${task._id}', { status: this.value })">
-        
+        onchange="updateTask('${task._id}', { status: this.value })"
+        >
         <option value="pending" ${task.status === "pending" ? "selected" : ""}>Pending</option>
         <option value="in-progress" ${task.status === "in-progress" ? "selected" : ""}>In Progress</option>
         <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
         </select>
-        <button onclick="deleteTask('${task._id}')"; style="margin-left:10px;">delete</button>
+        
+        ${isOwner ? `
+        <button onclick="deleteTask('${task._id}')"; style="margin-left:10px;">
+        delete
+        </button>
+        `: ""}
+        
         `;
 
       list.appendChild(li);
@@ -391,6 +412,7 @@ async function deleteTask(id) {
 
 //project members and assignment
 let projectMembers = [];
+let isOwner = false;
 
 async function loadProjectMembers() {
   try {
@@ -408,6 +430,12 @@ async function loadProjectMembers() {
     }
 
     projectMembers = data.members || [];
+
+    const ownerId = typeof data.owner === "object"
+      ? data.owner._id
+      : data.owner;
+
+    isOwner = ownerId.toString() === currentUser.id;
 
   } catch (error) {
     console.error(error);
