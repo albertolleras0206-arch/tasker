@@ -131,19 +131,23 @@ async function loadProjectsPage() {
     projects.forEach((project) => {
       const li = document.createElement("li");
 
-      li.innerHTML = `
-       <span>${project.name}</span>
+      li.className = "list-group-item d-flex justify-content-between align-items-center";
 
-      <button onclick="openProject('${project._id}', '${project.name}')">
-       Open Tasks
-      </button>
-      <button onclick="editProject('${project._id}', '${project.name}')">
-      Edit
-      </button>
-      <button onclick="deleteProject('${project._id}')">
-       Delete
-      </button>
-      `;
+      li.innerHTML = `
+        <span>${project.name}</span>
+
+        <div class="btn-group">
+          <button class="btn btn-sm btn-success" onclick="openProject('${project._id}', '${project.name}')">
+            Open
+          </button>
+          <button class="btn btn-sm btn-warning" onclick="editProject('${project._id}', '${project.name}')">
+            Edit
+          </button>
+          <button class="btn btn-sm btn-danger" onclick="deleteProject('${project._id}')">
+            Delete
+          </button>
+        </div>
+        `;
 
       list.appendChild(li);
     });
@@ -275,45 +279,65 @@ async function getTasks() {
 
     data.forEach(task => {
       const li = document.createElement("li");
+      li.className = "list-group-item";
 
       li.innerHTML = `
-        <input 
-        name="taskTitle-${task._id}"
-        value="${task.title}" 
-        ${!isOwner ? "disabled" : ""}
-        onchange="updateTask('${task._id}', { title: this.value })" 
-        />
+        <div class="mb-2">
+          <!-- TITLE -->
+          <input 
+            class="form-control"
+            value="${task.title}"
+            ${!isOwner ? "disabled" : ""}
+            onchange="updateTask('${task._id}', { title: this.value })"
+          />
+        </div>
 
-        <select 
-        ${!isOwner ? "disabled" : ""}
-        onchange="updateTask('${task._id}', { assignedTo: this.value || null })"
-        >
-        <option value="">Unassigned</option>
-          ${projectMembers.map(member => `
-          <option value="${member._id}" 
-          ${task.assignedTo && task.assignedTo._id === member._id ? "selected" : ""}>
-          ${member.name}
-        </option>
-        `).join("")}
-        </select>
 
-        <select 
-        name="taskStatus-${task._id}" 
-        onchange="updateTask('${task._id}', { status: this.value })"
-        >
-        <option value="pending" ${task.status === "pending" ? "selected" : ""}>Pending</option>
-        <option value="in-progress" ${task.status === "in-progress" ? "selected" : ""}>In Progress</option>
-        <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
-        </select>
-        
-        ${isOwner ? `
-        <button onclick="deleteTask('${task._id}')"; style="margin-left:10px;">
-        delete
-        </button>
-        `: ""}
-        
-        `;
+        <div class="d-flex flex-wrap gap-2 align-items-center">
 
+          <!-- ASSIGN -->
+          <select 
+            class="form-select w-auto"
+            ${!isOwner ? "disabled" : ""}
+            onchange="updateTask('${task._id}', { assignedTo: this.value || null })"
+          >
+            <option value="">Unassigned</option>
+            ${projectMembers.map(member => `
+              <option value="${member._id}"
+                ${task.assignedTo && task.assignedTo._id === member._id ? "selected" : ""}>
+                ${member.name}
+              </option>
+            `).join("")}
+          </select>
+
+          <!-- STATUS -->
+          <select 
+            class="form-select w-auto"
+            onchange="updateTask('${task._id}', { status: this.value })"
+          >
+            <option value="pending" ${task.status === "pending" ? "selected" : ""}>Pending</option>
+            <option value="in-progress" ${task.status === "in-progress" ? "selected" : ""}>In Progress</option>
+            <option value="done" ${task.status === "done" ? "selected" : ""}>Done</option>
+          </select>
+
+          <!-- DUE DATE -->
+          <span class="badge bg-secondary">
+            ${
+              task.dueDate
+                ? new Date(task.dueDate).toLocaleDateString()
+                : "No due date"
+            }
+          </span>
+
+          <!-- DELETE -->
+          ${isOwner ? `
+            <button class="btn btn-sm btn-danger ms-auto" onclick="deleteTask('${task._id}')">
+              Delete
+            </button>
+          ` : ""}
+        </div>
+      `;
+      
       list.appendChild(li);
     });
 
@@ -327,6 +351,7 @@ async function createTask() {
   try {
     const input = document.getElementById("taskTitle");
     const title = input.value.trim();
+    const dueDate = document.getElementById("taskDueDate").value;
 
     if (!title) {
       alert("Task title is required");
@@ -342,6 +367,7 @@ async function createTask() {
       body: JSON.stringify({
         title,
         projectId: currentProjectId,
+        dueDate: dueDate || null
       }),
     });
 
@@ -431,11 +457,19 @@ async function loadProjectMembers() {
 
     projectMembers = data.members || [];
 
+    //owner ID
     const ownerId = typeof data.owner === "object"
       ? data.owner._id
       : data.owner;
 
-    isOwner = ownerId.toString() === currentUser.id;
+    //user id 
+    const userId =
+      currentUser?.id ||
+      currentUser.id ||
+      currentUser?.user?.id;
+
+    //check if current user is owner
+    isOwner = ownerId.toString() === userId?.toString();
 
   } catch (error) {
     console.error(error);

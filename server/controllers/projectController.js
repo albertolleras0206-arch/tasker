@@ -141,10 +141,9 @@ exports.removeMember = async (req, res) => {
 // Update project name (ONLY OWNER)
 exports.updateProject = async (req, res) => {
   try {
-    const { projectId } = req.params;
     const { name } = req.body;
 
-    const project = await Project.findById(projectId);
+    const project = await Project.findById(req.params.projectId);
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
@@ -156,9 +155,10 @@ exports.updateProject = async (req, res) => {
     }
 
     project.name = name || project.name;
-    await project.save();
+    
+    const updatedProject = await project.save();
 
-    res.json(project);
+    res.json(updatedProject);
 
   } catch (error) {
     res.status(500).json({ message: error.message });
@@ -191,26 +191,20 @@ exports.deleteProject = async (req, res) => {
   }
 };
 
-// edit project name (ONLY OWNER)
-async function editProject(projectId, currentName) {
-  const newName = prompt("Edit project name:", currentName);
 
-  if (!newName) return;
+//get projects by ID
+exports.getProjectById = async (req, res) => {
+  try {
+    const project = await Project.findById(req.params.projectId)
+      .populate("members", "name email");
 
-  const res = await fetch(`http://localhost:5000/api/projects/${projectId}`, {
-    method: "PUT",
-    headers: {
-      "Content-Type": "application/json",
-      Authorization: "Bearer " + token,
-    },
-    body: JSON.stringify({ name: newName }),
-  });
+    if (!project) {
+      return res.status(404).json({ message: "Project not found" });
+    }
 
-  if (!res.ok) {
-    const data = await res.json();
-    alert(data.message);
-    return;
+    res.json(project);
+
+  } catch (error) {
+    res.status(500).json({ message: error.message });
   }
-
-  loadProjectsPage();
-}
+};

@@ -9,6 +9,7 @@ const {
   removeMember,
   updateProject,
   deleteProject,
+  getProjectById
 } = require("../controllers/projectController");
 
 //  Create project
@@ -28,5 +29,8 @@ router.put("/:projectId", authMiddleware, updateProject);
 
 // Delete project (ONLY OWNER)
 router.delete("/:projectId", authMiddleware, deleteProject);
+
+// Get project by ID (with tasks and members)
+router.get("/:projectId", authMiddleware, getProjectById);
 
 module.exports = router;
