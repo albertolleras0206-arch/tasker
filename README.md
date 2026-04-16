@@ -172,3 +172,7 @@ http://localhost:5000
 **Alberto Lleras**
 
 ---
+
+📄 License
+
+This project is open-source and available under the MIT License.

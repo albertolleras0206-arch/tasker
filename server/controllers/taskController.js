@@ -12,7 +12,7 @@ const isProjectMember = (project, userId) => {
 // CREATE TASK
 exports.createTask = async (req, res) => {
   try {
-    const { title, projectId, assignedTo } = req.body;
+    const { title, projectId, assignedTo, dueDate } = req.body;
 
     //1. validate that project exists
     const project = await Project.findById(projectId);
@@ -42,7 +42,8 @@ exports.createTask = async (req, res) => {
       user: req.user.id,
       project: projectId,
       assignedTo: assignedTo || null,
-      status: "pending"
+      status: "pending",
+      dueDate: dueDate || null
     });
 
     res.status(201).json(task);
