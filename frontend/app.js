@@ -1,9 +1,9 @@
-//obtain global state 
+//obtain global state
 let token = localStorage.getItem("token");
 let currentProjectId = localStorage.getItem("projectId");
 const path = window.location.pathname;
 
-//get user ID 
+//get user ID
 function getUserFromToken(token) {
   try {
     return JSON.parse(atob(token.split(".")[1]));
@@ -76,10 +76,10 @@ async function handleSubmit() {
     const body = isLogin
       ? { email, password }
       : {
-        name: document.getElementById("name")?.value,
-        email,
-        password,
-      };
+          name: document.getElementById("name")?.value,
+          email,
+          password,
+        };
 
     const res = await fetch(`http://localhost:5000${endpoint}`, {
       method: "POST",
@@ -101,7 +101,6 @@ async function handleSubmit() {
       alert("User registered successfully! You can now log in.");
       toggleForm(); // Switch to login after successful registration
     }
-
   } catch (err) {
     console.error(err);
     alert("Error connecting to server");
@@ -131,7 +130,8 @@ async function loadProjectsPage() {
     projects.forEach((project) => {
       const li = document.createElement("li");
 
-      li.className = "list-group-item d-flex justify-content-between align-items-center";
+      li.className =
+        "list-group-item d-flex justify-content-between align-items-center";
 
       li.innerHTML = `
         <span>${project.name}</span>
@@ -151,7 +151,6 @@ async function loadProjectsPage() {
 
       list.appendChild(li);
     });
-
   } catch (error) {
     console.error(error);
   }
@@ -212,14 +211,15 @@ async function editProject(projectId, currentName) {
     }
 
     loadProjectsPage(); // refresh list
-
   } catch (error) {
     console.error(error);
   }
 }
 
 async function deleteProject(projectId) {
-  const confirmDelete = confirm("Are you sure you want to delete this project? This action cannot be undone.");
+  const confirmDelete = confirm(
+    "Are you sure you want to delete this project? This action cannot be undone.",
+  );
 
   if (!confirmDelete) return;
 
@@ -238,16 +238,13 @@ async function deleteProject(projectId) {
     }
 
     loadProjectsPage(); // refresh list
-
   } catch (error) {
     console.error(error);
   }
 }
 
-
 //open project
 function openProject(projectId, projectName) {
-
   console.log("Click worked:");
 
   localStorage.setItem("projectId", projectId);
@@ -256,30 +253,76 @@ function openProject(projectId, projectName) {
   window.location.href = "tasks.html";
 }
 
+//due date logic function for badge colors
+function getDueDateBadge(dueDate) {
+  //done status
+  if (status === "done") {
+    return `<span class="badge bg-success">Done</span>`;
+  }
+
+  if (!dueDate) {
+    return `<span class="badge bg-secondary">No due date</span>`;
+  }
+
+  const today = new Date();
+  const due = new Date(dueDate);
+
+  // remove hours
+  today.setHours(0, 0, 0, 0);
+  due.setHours(0, 0, 0, 0);
+
+  // difference in days
+  const diffTime = due - today;
+  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+
+  let badgeClass = "bg-success"; // future
+
+  if (diffDays < 0) {
+    badgeClass = "bg-danger"; // overdue
+  } else if (diffDays <= 3) {
+    badgeClass = "bg-warning text-dark"; // today
+  }
+
+  return `
+    <span class="badge ${badgeClass}">
+      ${due.toLocaleDateString()}
+    </span>
+  `;
+}
+
 // GET TASKS
 async function getTasks() {
   try {
-    const res = await fetch(`http://localhost:5000/api/tasks/project/${currentProjectId}`, {
-      headers: {
-        "Authorization": "Bearer " + token
-      }
-    });
+    const res = await fetch(
+      `http://localhost:5000/api/tasks/project/${currentProjectId}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      },
+    );
 
-    const data = await res.json();
+    const tasks = await res.json();
 
     if (!res.ok) {
       console.error("Error fetching tasks:", data.message);
       return;
     }
 
-    const list = document.getElementById("taskList");
-    if (!list) return;
+    //colum fetching elements by tasks
+    const pendingCol = document.getElementById("pendingTasks");
+    const inProgressCol = document.getElementById("inProgressTasks");
+    const doneCol = document.getElementById("doneTasks");
 
-    list.innerHTML = "";
+    if (!pendingCol || !inProgressCol || !doneCol) return;
 
-    data.forEach(task => {
+    pendingCol.innerHTML = "";
+    inProgressCol.innerHTML = "";
+    doneCol.innerHTML = "";
+
+    tasks.forEach((task) => {
       const li = document.createElement("li");
-      li.className = "list-group-item";
+      li.className = "list-group-item mb-2";
 
       li.innerHTML = `
         <div class="mb-2">
@@ -302,12 +345,16 @@ async function getTasks() {
             onchange="updateTask('${task._id}', { assignedTo: this.value || null })"
           >
             <option value="">Unassigned</option>
-            ${projectMembers.map(member => `
+            ${projectMembers
+              .map(
+                (member) => `
               <option value="${member._id}"
                 ${task.assignedTo && task.assignedTo._id === member._id ? "selected" : ""}>
                 ${member.name}
               </option>
-            `).join("")}
+            `,
+              )
+              .join("")}
           </select>
 
           <!-- STATUS -->
@@ -321,26 +368,32 @@ async function getTasks() {
           </select>
 
           <!-- DUE DATE -->
-          <span class="badge bg-secondary">
-            ${
-              task.dueDate
-                ? new Date(task.dueDate).toLocaleDateString()
-                : "No due date"
-            }
-          </span>
+            ${getDueDateBadge(task.dueDate, task.status)}
 
           <!-- DELETE -->
-          ${isOwner ? `
+          ${
+            isOwner
+              ? `
             <button class="btn btn-sm btn-danger ms-auto" onclick="deleteTask('${task._id}')">
               Delete
             </button>
-          ` : ""}
+          `
+              : ""
+          }
         </div>
       `;
-      
-      list.appendChild(li);
-    });
 
+      //placing tasks in columns based on status
+      const status = task.status?.toLowerCase();
+
+      if (task.status === "pending") {
+        pendingCol.appendChild(li);
+      } else if (task.status === "in-progress") {
+        inProgressCol.appendChild(li);
+      } else if (task.status === "done") {
+        doneCol.appendChild(li);
+      }
+    });
   } catch (error) {
     console.error(error);
   }
@@ -362,12 +415,12 @@ async function createTask() {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
+        Authorization: "Bearer " + token,
       },
       body: JSON.stringify({
         title,
         projectId: currentProjectId,
-        dueDate: dueDate || null
+        dueDate: dueDate || null,
       }),
     });
 
@@ -380,7 +433,6 @@ async function createTask() {
 
     input.value = "";
     getTasks(); //refresh list
-
   } catch (error) {
     console.error(error);
   }
@@ -393,9 +445,9 @@ async function updateTask(id, updates) {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
-        "Authorization": "Bearer " + token
+        Authorization: "Bearer " + token,
       },
-      body: JSON.stringify(updates)
+      body: JSON.stringify(updates),
     });
 
     const data = await res.json();
@@ -406,7 +458,6 @@ async function updateTask(id, updates) {
     }
 
     getTasks();
-
   } catch (error) {
     console.error(error);
   }
@@ -418,8 +469,8 @@ async function deleteTask(id) {
     const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
       method: "DELETE",
       headers: {
-        "Authorization": "Bearer " + token
-      }
+        Authorization: "Bearer " + token,
+      },
     });
 
     const data = await res.json();
@@ -430,7 +481,6 @@ async function deleteTask(id) {
     }
 
     getTasks();
-
   } catch (error) {
     console.error(error);
   }
@@ -442,11 +492,14 @@ let isOwner = false;
 
 async function loadProjectMembers() {
   try {
-    const res = await fetch(`http://localhost:5000/api/projects/${currentProjectId}`, {
-      headers: {
-        Authorization: "Bearer " + token
-      }
-    });
+    const res = await fetch(
+      `http://localhost:5000/api/projects/${currentProjectId}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      },
+    );
 
     const data = await res.json();
 
@@ -458,19 +511,14 @@ async function loadProjectMembers() {
     projectMembers = data.members || [];
 
     //owner ID
-    const ownerId = typeof data.owner === "object"
-      ? data.owner._id
-      : data.owner;
+    const ownerId =
+      typeof data.owner === "object" ? data.owner._id : data.owner;
 
-    //user id 
-    const userId =
-      currentUser?.id ||
-      currentUser.id ||
-      currentUser?.user?.id;
+    //user id
+    const userId = currentUser?.id || currentUser.id || currentUser?.user?.id;
 
     //check if current user is owner
     isOwner = ownerId.toString() === userId?.toString();
-
   } catch (error) {
     console.error(error);
   }
@@ -504,7 +552,6 @@ document.addEventListener("DOMContentLoaded", async () => {
     getTasks();
   }
 });
-
 
 // LOGOUT
 function logout() {
