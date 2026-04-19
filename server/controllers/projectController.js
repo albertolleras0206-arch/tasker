@@ -2,10 +2,11 @@ const Project = require("../models/Project");
 const User = require("../models/User");
 const { isOwner, isMember } = require("../utils/projectHelper");
 
-
 // Create a new project
 exports.createProject = async (req, res) => {
   try {
+    const { name } = req.body;
+
     // Check for duplicate project name for this user
     const existingProject = await Project.findOne({
       name: req.body.name,
@@ -39,10 +40,7 @@ exports.getProjects = async (req, res) => {
     const userId = req.user.id;
 
     const projects = await Project.find({
-      $or: [
-        { owner: userId },
-        { members: userId },
-      ],
+      $or: [{ owner: userId }, { members: userId }],
     });
 
     res.json(projects);
@@ -77,7 +75,9 @@ exports.addMember = async (req, res) => {
 
     // Prevent adding owner as member
     if (isOwner(project, user._id.toString())) {
-      return res.status(400).json({ message: "Owner is already part of the project" });
+      return res
+        .status(400)
+        .json({ message: "Owner is already part of the project" });
     }
 
     // Prevent duplicate members
@@ -89,7 +89,6 @@ exports.addMember = async (req, res) => {
     await project.save();
 
     res.json({ message: "User added to project" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error adding user" });
@@ -124,19 +123,17 @@ exports.removeMember = async (req, res) => {
 
     // Remove user
     project.members = project.members.filter(
-      (member) => member.toString() !== userId
+      (member) => member.toString() !== userId,
     );
 
     await project.save();
 
     res.json({ message: "User removed from project" });
-
   } catch (error) {
     console.error(error);
     res.status(500).json({ message: "Error removing user" });
   }
 };
-
 
 // Update project name (ONLY OWNER)
 exports.updateProject = async (req, res) => {
@@ -155,17 +152,16 @@ exports.updateProject = async (req, res) => {
     }
 
     project.name = name || project.name;
-    
+
     const updatedProject = await project.save();
 
     res.json(updatedProject);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-//delete project (ONLY OWNER) 
+//delete project (ONLY OWNER)
 
 exports.deleteProject = async (req, res) => {
   try {
@@ -185,25 +181,24 @@ exports.deleteProject = async (req, res) => {
     await project.deleteOne();
 
     res.json({ message: "Project deleted successfully" });
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }
 };
 
-
 //get projects by ID
 exports.getProjectById = async (req, res) => {
   try {
-    const project = await Project.findById(req.params.projectId)
-      .populate("members", "name email");
+    const project = await Project.findById(req.params.projectId).populate(
+      "members",
+      "name email",
+    );
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
     }
 
     res.json(project);
-
   } catch (error) {
     res.status(500).json({ message: error.message });
   }

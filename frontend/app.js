@@ -136,17 +136,22 @@ async function loadProjectsPage() {
       li.innerHTML = `
         <span>${project.name}</span>
 
-        <div class="btn-group">
-          <button class="btn btn-sm btn-success" onclick="openProject('${project._id}', '${project.name}')">
-            Open
-          </button>
-          <button class="btn btn-sm btn-warning" onclick="editProject('${project._id}', '${project.name}')">
-            Edit
-          </button>
-          <button class="btn btn-sm btn-danger" onclick="deleteProject('${project._id}')">
-            Delete
-          </button>
-        </div>
+          <div class="btn-group">
+            <button class="btn btn-sm btn-success"
+               onclick="openProject('${project._id}', \`${project.name}\`)">
+                Open
+            </button>
+
+            <button class="btn btn-sm btn-warning"
+              onclick="editProject('${project._id}', \`${project.name}\`)">
+                Edit
+            </button>
+
+              <button class="btn btn-sm btn-danger"
+                onclick="deleteProject('${project._id}')">
+                  Delete
+              </button>
+          </div>
         `;
 
       list.appendChild(li);
@@ -175,14 +180,17 @@ async function createProject() {
       },
       body: JSON.stringify({ name }),
     });
+
     const data = await res.json();
+
     if (!res.ok) {
       alert(data.message || "Error creating project");
       return;
     }
 
     input.value = "";
-    loadProjectsPage();
+
+    await loadProjectsPage();
   } catch (error) {
     console.error(error);
   }
