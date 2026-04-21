@@ -1,13 +1,13 @@
 const Task = require("../models/Task");
 const Project = require("../models/Project");
 
-// 
+//
 const isProjectMember = (project, userId) => {
   return (
     project.owner.toString() === userId ||
     project.members.some((member) => member.toString() === userId)
   );
-}
+};
 
 // CREATE TASK
 exports.createTask = async (req, res) => {
@@ -21,18 +21,22 @@ exports.createTask = async (req, res) => {
       return res.status(404).json({ message: "Project not found" });
     }
 
-    //checking if assigned 
+    //checking if assigned
     if (assignedTo) {
       //only owner may assign task to other members
       if (project.owner.toString() !== req.user.id) {
-        return res.status(403).json({ message: "Only project owner can assign tasks" });
+        return res
+          .status(403)
+          .json({ message: "Only project owner can assign tasks" });
       }
 
       // validate is user is member or owner
       const isMember = isProjectMember(project, req.user.id);
 
       if (!isMember) {
-        return res.status(403).json({ message: "You are not a member of this project" });
+        return res
+          .status(403)
+          .json({ message: "You are not a member of this project" });
       }
     }
 
@@ -43,7 +47,7 @@ exports.createTask = async (req, res) => {
       project: projectId,
       assignedTo: assignedTo || null,
       status: "pending",
-      dueDate: dueDate || null
+      dueDate: dueDate || null,
     });
 
     res.status(201).json(task);
@@ -68,8 +72,10 @@ exports.getTasksByProject = async (req, res) => {
       return res.status(403).json({ message: "Not authorized" });
     }
 
-    const tasks = await Task.find({ project: projectId })
-      .populate("assignedTo", "name");
+    const tasks = await Task.find({ project: projectId }).populate(
+      "assignedTo",
+      "name",
+    );
 
     res.json(tasks);
   } catch (error) {
@@ -91,11 +97,17 @@ exports.updateTask = async (req, res) => {
     // owner(admin user) may update else none.
 
     if (task.project.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Only project owner can update tasks" });
+      return res
+        .status(403)
+        .json({ message: "Only project owner can update tasks" });
     }
 
     task.status = req.body.status ?? task.status;
     task.title = req.body.title ?? task.title;
+
+    if (req.body.dueDate !== undefined) {
+      task.dueDate = req.body.dueDate;
+    }
 
     await task.save();
 
@@ -118,7 +130,9 @@ exports.deleteTask = async (req, res) => {
 
     //onwer(admin user) may delete else none.
     if (task.project.owner.toString() !== req.user.id) {
-      return res.status(403).json({ message: "Only project owner can delete tasks" });
+      return res
+        .status(403)
+        .json({ message: "Only project owner can delete tasks" });
     }
 
     await task.deleteOne();

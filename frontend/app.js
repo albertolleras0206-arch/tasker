@@ -1,6 +1,7 @@
 //obtain global state
 let token = localStorage.getItem("token");
 let currentProjectId = localStorage.getItem("projectId");
+let tasks = [];
 const path = window.location.pathname;
 
 //get user ID
@@ -262,7 +263,7 @@ function openProject(projectId, projectName) {
 }
 
 //due date logic function for badge colors
-function getDueDateBadge(dueDate) {
+function getDueDateBadge(dueDate, status) {
   //done status
   if (status === "done") {
     return `<span class="badge bg-success">Done</span>`;
@@ -271,29 +272,28 @@ function getDueDateBadge(dueDate) {
   if (!dueDate) {
     return `<span class="badge bg-secondary">No due date</span>`;
   }
-
+  // avoid timezone conversion
+  const dateString = dueDate.split("T")[0];
   const today = new Date();
-  const due = new Date(dueDate);
-
-  // remove hours
-  today.setHours(0, 0, 0, 0);
-  due.setHours(0, 0, 0, 0);
-
-  // difference in days
-  const diffTime = due - today;
-  const diffDays = diffTime / (1000 * 60 * 60 * 24);
+  const todayString = today.toISOString().split("T")[0];
 
   let badgeClass = "bg-success"; // future
 
-  if (diffDays < 0) {
+  if (dateString <= todayString) {
     badgeClass = "bg-danger"; // overdue
-  } else if (diffDays <= 3) {
-    badgeClass = "bg-warning text-dark"; // today
+  } else {
+    // difference in days
+    const diffDays =
+      (new Date(dateString) - new Date(todayString)) / (1000 * 60 * 60 * 24);
+
+    if (diffDays <= 3) {
+      badgeClass = "bg-warning text-dark"; // today
+    }
   }
 
   return `
     <span class="badge ${badgeClass}">
-      ${due.toLocaleDateString()}
+      ${dateString}
     </span>
   `;
 }
@@ -310,7 +310,7 @@ async function getTasks() {
       },
     );
 
-    const tasks = await res.json();
+    tasks = await res.json();
 
     if (!res.ok) {
       console.error("Error fetching tasks:", data.message);
@@ -377,11 +377,15 @@ async function getTasks() {
 
           <!-- DUE DATE -->
             ${getDueDateBadge(task.dueDate, task.status)}
-
+          
           <!-- DELETE -->
           ${
             isOwner
               ? `
+            <button class="btn btn-sm btn-primary" onclick="openEditModal('${task._id}')">
+              Edit
+            </button>
+
             <button class="btn btn-sm btn-danger ms-auto" onclick="deleteTask('${task._id}')">
               Delete
             </button>
@@ -567,9 +571,72 @@ function logout() {
   window.location.href = "index.html";
 }
 
+function openEditModal(taskId) {
+  console.log("Opening modal:", taskId);
+
+  const task = tasks.find((t) => t._id === taskId);
+
+  if (!task) {
+    console.error("Task not found");
+    return;
+  }
+
+  document.getElementById("editTaskId").value = task._id;
+  document.getElementById("editTitle").value = task.title;
+  document.getElementById("editStatus").value = task.status;
+  document.getElementById("editDueDate").value = task.dueDate
+    ? task.dueDate.split("T")[0]
+    : "";
+
+  const modal = new bootstrap.Modal(document.getElementById("editTaskModal"));
+
+  modal.show();
+}
+
+async function saveTaskEdit() {
+  const id = document.getElementById("editTaskId").value;
+
+  const rawDate = document.getElementById("editDueDate").value;
+
+  const updatedTask = {
+    title: document.getElementById("editTitle").value,
+    status: document.getElementById("editStatus").value,
+    dueDate: rawDate ? rawDate : null,
+  };
+
+  try {
+    const res = await fetch(`http://localhost:5000/api/tasks/${id}`, {
+      method: "PUT",
+      headers: {
+        "Content-Type": "application/json",
+        Authorization: "Bearer " + token,
+      },
+      body: JSON.stringify(updatedTask),
+    });
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Error updating task");
+      return;
+    }
+
+    const modalEl = document.getElementById("editTaskModal");
+    const modalInstance = bootstrap.Modal.getInstance(modalEl);
+
+    if (modalInstance) modalInstance.hide();
+
+    getTasks();
+  } catch (err) {
+    console.error(err);
+  }
+}
+
 //global functions
 window.editProject = editProject;
 window.deleteProject = deleteProject;
 window.openProject = openProject;
 window.deleteTask = deleteTask;
 window.updateTask = updateTask;
+window.openEditModal = openEditModal;
+window.saveTaskEdit = saveTaskEdit;
