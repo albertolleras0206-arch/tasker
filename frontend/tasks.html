@@ -17,30 +17,47 @@
   </head>
 
   <body>
+    <!-- NAVBAR -->
     <nav class="navbar navbar-expand-lg navbar-dark bg-dark px-4">
       <a class="navbar-brand fw-bold" href="#">Tasker</a>
 
-      <div class="collapse navbar-collapse">
-        <ul class="navbar-nav me-auto">
+      <!-- TOGGLER -->
+      <button
+        class="navbar-toggler"
+        type="button"
+        data-bs-toggle="collapse"
+        data-bs-target="#navbarContent"
+      >
+        <span class="navbar-toggler-icon"></span>
+      </button>
+
+      <!-- COLLAPSIBLE CONTENT -->
+      <div class="collapse navbar-collapse" id="navbarContent">
+        <ul class="navbar-nav me-auto mt-2 mt-lg-0">
           <li class="nav-item">
-            <a class="nav-link" href="projects.html">Projects</a>
+            <a class="nav-link active" href="projects.html">Projects</a>
           </li>
           <li class="nav-item">
             <a class="nav-link" href="tasks.html">Tasks</a>
           </li>
         </ul>
 
-        <span class="navbar-text me-3" id="current-user"></span>
-        <button class="btn btn-outline-light btn-sm" onclick="logout()">
-          Logout
-        </button>
+        <div
+          class="d-flex flex-column flex-lg-row align-items-lg-center gap-2 mt-3 mt-lg-0"
+        >
+          <span class="navbar-text" id="current-user"></span>
+          <button class="btn btn-outline-light btn-sm" onclick="logout()">
+            Logout
+          </button>
+        </div>
       </div>
     </nav>
-    <div class="container-fluid mt-4 px-4">
-      <h2 id="project-title" class="mb-4"></h2>
 
-      <div class="row mb-3">
-        <div class="col-md-5">
+    <div class="container-fluid mt-3 px-4">
+      <h2 id="project-title" class="text-center mb-2"></h2>
+
+      <div class="row justify-content-center g-1 mb-2">
+        <div class="col-12 col-md-3 col-lg-3">
           <input
             type="text"
             id="taskTitle"
@@ -48,10 +65,12 @@
             placeholder="Task title"
           />
         </div>
-        <div class="col-md-3">
+
+        <div class="col-12 col-md-3 col-lg-3">
           <input type="date" id="taskDueDate" class="form-control" />
         </div>
-        <div class="col-md-3">
+
+        <div class="col-12 col-md-3 col-lg-2">
           <button class="btn btn-primary w-100" onclick="createTask()">
             Add Task
           </button>

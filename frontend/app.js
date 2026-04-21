@@ -49,38 +49,56 @@ function toggleForm() {
   const toggleText = document.getElementById("toggle-text");
   const nameGroup = document.getElementById("name-group");
   const toggleLink = document.getElementById("toggle-link");
+  const card = document.querySelector(".card");
+  const nameInput = document.getElementById("name");
 
   if (!formTitle || !submitBtn || !toggleText || !nameGroup) return;
 
-  formTitle.innerText = isLogin ? "Login" : "Register";
-  submitBtn.innerText = isLogin ? "Login" : "Register";
+  // Trigger fade out
+  card.classList.remove("show");
+  card.classList.add("fade-slide");
 
-  toggleText.innerText = isLogin
-    ? "Don't have an account?"
-    : "Already have an account?";
+  setTimeout(() => {
+    // Switch content
+    formTitle.innerText = isLogin ? "Login" : "Register";
+    submitBtn.innerText = isLogin ? "Login" : "Register";
 
-  //login
-  toggleLink.innerText = isLogin ? "Register" : "Login";
+    toggleText.innerText = isLogin
+      ? "Don't have an account?"
+      : "Already have an account?";
 
-  //show name for registration
-  nameGroup.style.display = isLogin ? "none" : "block";
+    toggleLink.innerText = isLogin ? "Register" : "Login";
+
+    // Animate name field
+    if (isLogin) {
+      nameGroup.classList.remove("show");
+      nameInput.required = false;
+    } else {
+      nameGroup.classList.add("show");
+      nameInput.required = true;
+    }
+
+    // Fade back in
+    card.classList.remove("fade-slide");
+    card.classList.add("show");
+  }, 150);
 }
 
 // ======== HANDLE LOGIN OR REGISTER ========
 async function handleSubmit() {
   try {
+    const name = document.getElementById("name")?.value.trim();
     const email = document.getElementById("email")?.value;
     const password = document.getElementById("password")?.value;
 
+    if (!email || !password || (!isLogin && !name)) {
+      alert("Please fill in all required fields");
+      return;
+    }
+
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 
-    const body = isLogin
-      ? { email, password }
-      : {
-          name: document.getElementById("name")?.value,
-          email,
-          password,
-        };
+    const body = isLogin ? { email, password } : { name, email, password };
 
     const res = await fetch(`http://localhost:5000${endpoint}`, {
       method: "POST",
@@ -129,33 +147,38 @@ async function loadProjectsPage() {
     list.innerHTML = "";
 
     projects.forEach((project) => {
-      const li = document.createElement("li");
+      const col = document.createElement("div");
 
-      li.className =
-        "list-group-item d-flex justify-content-between align-items-center";
+      col.className = "col-12 col-sm-6 col-md-4 col-lg-4";
 
-      li.innerHTML = `
-        <span>${project.name}</span>
+      col.innerHTML = `
+           <div class="card h-45 shadow-sm text-center p-3">
+            <div class="card-body d-flex flex-column justify-content-between">
+            
+            <h5 class="card-title">${project.name}</h5>
 
-          <div class="btn-group">
-            <button class="btn btn-sm btn-success"
-               onclick="openProject('${project._id}', \`${project.name}\`)">
+            <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
+              <button class="btn btn-sm btn-success"
+                onclick="openProject('${project._id}', \`${project.name}\`)">
                 Open
-            </button>
+              </button>
 
-            <button class="btn btn-sm btn-warning"
-              onclick="editProject('${project._id}', \`${project.name}\`)">
+              <button class="btn btn-sm btn-warning"
+                onclick="editProject('${project._id}', \`${project.name}\`)">
                 Edit
-            </button>
+              </button>
 
               <button class="btn btn-sm btn-danger"
                 onclick="deleteProject('${project._id}')">
-                  Delete
+                Delete
               </button>
-          </div>
-        `;
+            </div>
 
-      list.appendChild(li);
+          </div>
+        </div>
+      `;
+
+      list.appendChild(col);
     });
   } catch (error) {
     console.error(error);
@@ -562,6 +585,13 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     await loadProjectMembers();
     getTasks();
+  }
+});
+
+document.addEventListener("DOMContentLoaded", () => {
+  const card = document.querySelector(".card");
+  if (card) {
+    card.classList.add("show");
   }
 });
 

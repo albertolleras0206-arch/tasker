@@ -54,6 +54,16 @@ input {
   cursor: pointer;
 }
 
+.navbar-nav .nav-link {
+  padding-left: 0.5rem;
+}
+
+@media (max-width: 992px) {
+  .navbar-text {
+    font-size: 0.9rem;
+  }
+}
+
 .logo {
   font-weight: bold;
   margin-right: 15px;
@@ -96,13 +106,13 @@ button:hover {
   background: #1e40af;
 }
 
-body {
+/*body {
   font-family: "Inter", sans-serif;
   background-color: #f5f7fa;
   margin: 0;
   padding: 0;
   color: #333;
-}
+}*/
 
 .col-md-4 {
   background: #f8f9fa;
@@ -126,5 +136,58 @@ body {
 h5 {
   text-align: center;
   font-weight: 600;
-  margin-bottom: 10px;
+  margin-bottom: 6px;
+}
+
+body {
+  background: linear-gradient(135deg, #f5f7fa, #e4ecf7);
+}
+
+.card {
+  border-radius: 12px;
+  transition: all 0.4s ease;
+}
+
+.card_title {
+  font-size: 1.5rem;
+  font-weight: 600;
+}
+
+.card:hover {
+  transform: translateY(-5px);
+  box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+}
+
+@media (max-width: 576px) {
+  .card {
+    padding: 20px 15px;
+  }
+}
+
+/* Fade + slide animation */
+.fade-slide {
+  opacity: 0;
+  transform: translateY(10px);
+}
+
+.fade-slide.show {
+  opacity: 1;
+  transform: translateY(0);
+  transition: all 0.3s ease;
+}
+
+/* Smooth expand for name field */
+#name-group {
+  max-height: 0;
+  opacity: 0;
+}
+
+#name-group.show {
+  max-height: 120px;
+  opacity: 1;
+}
+
+#projectList {
+  max-width: 1200px;
+  margin: 0 auto;
 }
