@@ -109,6 +109,10 @@ exports.updateTask = async (req, res) => {
       task.dueDate = req.body.dueDate;
     }
 
+    if( req.body.assignedTo !== undefined){
+      task.assignedTo = req.body.assignedTo || null;
+    }
+
     await task.save();
 
     res.json(task);

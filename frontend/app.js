@@ -98,11 +98,11 @@ async function handleSubmit() {
 
     const endpoint = isLogin ? "/api/auth/login" : "/api/auth/register";
 
-    const body = isLogin ? { email, password } : { name, email, password };
+    const body = isLogin ? {email, password} : {name, email, password};
 
     const res = await fetch(`http://localhost:5000${endpoint}`, {
       method: "POST",
-      headers: { "Content-Type": "application/json" },
+      headers: {"Content-Type": "application/json"},
       body: JSON.stringify(body),
     });
 
@@ -202,7 +202,7 @@ async function createProject() {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token,
       },
-      body: JSON.stringify({ name }),
+      body: JSON.stringify({name}),
     });
 
     const data = await res.json();
@@ -232,7 +232,7 @@ async function editProject(projectId, currentName) {
         "Content-Type": "application/json",
         Authorization: "Bearer " + token,
       },
-      body: JSON.stringify({ name: newName }),
+      body: JSON.stringify({name: newName}),
     });
 
     const data = await res.json();
@@ -559,6 +559,123 @@ async function loadProjectMembers() {
   }
 }
 
+async function loadMembersList() {
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/projects/${currentProjectId}`,
+      {
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      },
+    );
+
+    const project = await res.json();
+
+    if (!res.ok) {
+      alert(project.message || "Error loading members");
+      return;
+    }
+
+    const membersList = document.getElementById("membersList");
+
+    membersList.innerHTML = "";
+
+    // Show owner
+    membersList.innerHTML += `
+      <li class="list-group-item d-flex justify-content-between align-items-center">
+        ${project.owner.name} (Owner)
+      </li>
+    `;
+
+    // Show members
+    project.members.forEach((member) => {
+      membersList.innerHTML += `
+        <li class="list-group-item d-flex justify-content-between align-items-center">
+          ${member.name} (${member.email})
+
+          <button 
+            class="btn btn-sm btn-danger"
+            onclick="removeProjectMember('${member._id}')">
+            Remove
+          </button>
+        </li>
+      `;
+    });
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function addProjectMember() {
+  try {
+    const emailInput = document.getElementById("memberEmail");
+    const email = emailInput.value.trim();
+
+    if (!email) {
+      alert("Email is required");
+      return;
+    }
+
+    const res = await fetch(
+      `http://localhost:5000/api/projects/${currentProjectId}/members`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: "Bearer " + token,
+        },
+        body: JSON.stringify({email}),
+      },
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Failed to add member");
+      return;
+    }
+
+    alert("Member added successfully");
+
+    emailInput.value = "";
+
+    await loadMembersList();
+    await loadProjectMembers(); // refresh assignment dropdown list
+  } catch (error) {
+    console.error(error);
+  }
+}
+
+async function removeProjectMember(userId) {
+  try {
+    const res = await fetch(
+      `http://localhost:5000/api/projects/${currentProjectId}/members/${userId}`,
+      {
+        method: "DELETE",
+        headers: {
+          Authorization: "Bearer " + token,
+        },
+      },
+    );
+
+    const data = await res.json();
+
+    if (!res.ok) {
+      alert(data.message || "Failed to remove member");
+      return;
+    }
+
+    alert("Member removed successfully");
+
+    await loadMembersList();
+    await loadProjectMembers();
+    getTasks();
+  } catch (error) {
+    console.error(error);
+  }
+}
+
 // UI
 //load projects on projects page
 document.addEventListener("DOMContentLoaded", async () => {
@@ -670,3 +787,6 @@ window.deleteTask = deleteTask;
 window.updateTask = updateTask;
 window.openEditModal = openEditModal;
 window.saveTaskEdit = saveTaskEdit;
+window.loadMembersList = loadMembersList;
+window.addProjectMember = addProjectMember;
+window.removeProjectMember = removeProjectMember;

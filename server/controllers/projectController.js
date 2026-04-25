@@ -189,10 +189,9 @@ exports.deleteProject = async (req, res) => {
 //get projects by ID
 exports.getProjectById = async (req, res) => {
   try {
-    const project = await Project.findById(req.params.projectId).populate(
-      "members",
-      "name email",
-    );
+    const project = await Project.findById(req.params.projectId)
+    .populate("owner","name email")
+    .populate("members","name email");
 
     if (!project) {
       return res.status(404).json({ message: "Project not found" });
