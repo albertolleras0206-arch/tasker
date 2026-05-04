@@ -49,7 +49,7 @@ function toggleForm() {
   const toggleText = document.getElementById("toggle-text");
   const nameGroup = document.getElementById("name-group");
   const toggleLink = document.getElementById("toggle-link");
-  const card = document.querySelector(".card");
+  const card = document.querySelector(".auth-card");
   const nameInput = document.getElementById("name");
 
   if (!formTitle || !submitBtn || !toggleText || !nameGroup) return;
@@ -160,17 +160,17 @@ async function loadProjectsPage() {
             <div class="d-flex flex-wrap gap-2 mt-3 justify-content-center">
               <button class="btn btn-sm btn-success"
                 onclick="openProject('${project._id}', \`${project.name}\`)">
-                Open
+                <i class="bi bi-folder2-open"></i
               </button>
 
               <button class="btn btn-sm btn-warning"
                 onclick="editProject('${project._id}', \`${project.name}\`)">
-                Edit
+                <i class="bi bi-pencil"></i>
               </button>
 
               <button class="btn btn-sm btn-danger"
                 onclick="deleteProject('${project._id}')">
-                Delete
+                <i class="bi bi-trash"></i>
               </button>
             </div>
 
@@ -406,11 +406,11 @@ async function getTasks() {
             isOwner
               ? `
             <button class="btn btn-sm btn-primary" onclick="openEditModal('${task._id}')">
-              Edit
+              <i class="bi bi-pencil"></i>
             </button>
 
             <button class="btn btn-sm btn-danger ms-auto" onclick="deleteTask('${task._id}')">
-              Delete
+              <i class="bi bi-trash"></i>
             </button>
           `
               : ""
@@ -597,7 +597,7 @@ async function loadMembersList() {
           <button 
             class="btn btn-sm btn-danger"
             onclick="removeProjectMember('${member._id}')">
-            Remove
+             <i class="bi bi-person-x-fill"></i>
           </button>
         </li>
       `;
@@ -790,3 +790,5 @@ window.saveTaskEdit = saveTaskEdit;
 window.loadMembersList = loadMembersList;
 window.addProjectMember = addProjectMember;
 window.removeProjectMember = removeProjectMember;
+window.toggleForm = toggleForm;
+window.handleSubmit = handleSubmit;

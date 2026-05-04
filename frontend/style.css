@@ -191,3 +191,68 @@ body {
   max-width: 1200px;
   margin: 0 auto;
 }
+
+/* Background */
+.auth-bg {
+  background: linear-gradient(135deg, #1f2937, #111827);
+  min-height: 100vh;
+}
+
+/* Center container */
+.auth-container {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  min-height: 100vh;
+  padding: 20px;
+}
+
+/* Card */
+.auth-card {
+  background: #ffffff;
+  border-radius: 16px;
+  padding: 30px;
+  width: 100%;
+  max-width: 380px;
+  transition: all 0.3s ease;
+}
+
+/* Inputs */
+.auth-input {
+  border-radius: 10px;
+  padding: 10px 12px;
+  border: 1px solid #ddd;
+  transition: 0.2s;
+}
+
+.auth-input:focus {
+  border-color: #0d6efd;
+  box-shadow: 0 0 0 2px rgba(13, 110, 253, 0.2);
+}
+
+/* Button */
+.auth-btn {
+  border-radius: 10px;
+  padding: 10px;
+  font-weight: 600;
+  transition: 0.2s;
+}
+
+.auth-btn:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 5px 12px rgba(0, 0, 0, 0.15);
+}
+
+/* Subtle animation */
+.auth-card:hover {
+  transform: translateY(-2px);
+}
+
+.btn-sm i {
+  font-size: 1rem;
+}
+
+.btn-sm:hover {
+  transform: scale(1.05);
+  transition: 0.15s ease;
+}
